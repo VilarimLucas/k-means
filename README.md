@@ -1,62 +1,120 @@
-# Análise de Densidade Populacional Brasileira com K-means
+# Miniprojeto - Análise de Densidade Populacional com K-means
 
-Este projeto utiliza o algoritmo de K-means para realizar uma análise de agrupamento com base na densidade populacional dos estados brasileiros. A atividade faz parte de um miniprojeto da disciplina de Mineração de Dados no curso de Desenvolvimento de Software Multiplataforma.
+Este projeto utiliza o algoritmo de K-means para analisar a densidade populacional de estados brasileiros. A visualização dos dados é feita em um mapa geográfico usando a biblioteca Basemap, exibindo clusters de densidade para melhor entendimento da distribuição populacional.
 
 ## Objetivo
 
-O objetivo deste projeto é aplicar o algoritmo de K-means para identificar grupos de estados brasileiros com densidades populacionais semelhantes, facilitando uma visualização das regiões mais densamente povoadas.
+O objetivo do projeto é aplicar a técnica de K-means para identificar e visualizar clusters de densidade populacional nos estados brasileiros, utilizando dados fictícios. A análise foca em agrupar estados com densidades similares e representar visualmente esses clusters.
 
-## Tecnologias Utilizadas
+## Tecnologias e Bibliotecas Utilizadas
 
-- Linguagem: Python
-- Biblioteca de aprendizado de máquina: Scikit-Learn
-- Bibliotecas de manipulação de dados e visualização: Pandas, NumPy e Matplotlib
+- Python
+- Google Colab
+- Bibliotecas Python:
+  - `numpy`
+  - `matplotlib`
+  - `scikit-learn`
+  - `basemap` (e `basemap-data-hires` para mapas de alta resolução)
 
-## Estrutura do Projeto
+## Estrutura do Código
 
-- `data`: Pasta onde serão armazenados os dados fictícios ou reais sobre densidade populacional.
-- `notebooks`: Contém o notebook Jupyter (ou link do Google Colab) com a implementação do K-means e análise de dados.
-- `README.md`: Arquivo de documentação do projeto.
+1. **Instalação das Dependências**  
+   Instalação da biblioteca `basemap` e suas dependências no Google Colab.
 
-## Pré-requisitos
+   ```python
+   !pip install basemap basemap-data-hires
+   ```
 
-Para executar este projeto, você precisa ter Python instalado e as bibliotecas listadas abaixo:
-- Pandas
-- NumPy
-- Scikit-Learn
-- Matplotlib
+### 2. Importação das Bibliotecas
 
-Para instalar as bibliotecas, execute:
-```bash
-pip install pandas numpy scikit-learn matplotlib
+Importe as bibliotecas necessárias para o projeto:
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from mpl_toolkits.basemap import Basemap
+```
+### 3. Definição dos Dados
+
+Defina os dados fictícios para latitude, longitude e densidade populacional para cada estado brasileiro. Esses dados são utilizados para simular a análise de densidade.
+
+```python
+estados = ['SP', 'RJ', 'MG', 'ES', 'RS', 'SC', 'PR', 'BA', 'PE', 'CE']
+latitude = [-23.55, -22.90, -19.92, -20.32, -30.03, -27.59, -25.43, -12.97, -8.05, -3.71]
+longitude = [-46.63, -43.20, -43.93, -40.34, -51.23, -48.55, -49.27, -38.51, -34.88, -38.54]
+densidade_populacional = [300, 400, 250, 180, 200, 150, 180, 120, 170, 160]
+```
+### 4. Aplicação do Algoritmo K-means
+
+Aplique o algoritmo de K-means nos dados de densidade populacional para identificar clusters.
+
+```python
+data = np.array(list(zip(latitude, longitude, densidade_populacional)))
+kmeans = KMeans(n_clusters=3, random_state=0).fit(data[:, 2].reshape(-1, 1))
+clusters = kmeans.predict(data[:, 2].reshape(-1, 1))
+```
+### 5. Visualização dos Clusters
+
+Crie um gráfico de dispersão simples para visualizar os clusters de densidade populacional. Cada estado é representado por um ponto colorido de acordo com seu cluster.
+
+```python
+plt.scatter(densidade_populacional, [1]*len(densidade_populacional), c=clusters, cmap='viridis')
+plt.title('Clusters de Densidade Populacional nos Estados Brasileiros')
+plt.xlabel('Densidade Populacional (habitantes/km²)')
+plt.ylabel('Estados')
+plt.show()
+```
+### 6. Criação do Mapa Geográfico com Basemap
+
+Configure o mapa do Brasil usando a biblioteca Basemap e plote os estados com suas respectivas densidades e clusters.
+
+```python
+plt.figure(figsize=(10, 8))
+m = Basemap(projection='merc', llcrnrlat=-35, urcrnrlat=5, llcrnrlon=-75, urcrnrlon=-34, resolution='i')
+m.drawcoastlines()
+m.drawcountries()
+m.drawstates()
+```
+### 7. Plotagem dos Pontos e Centros dos Clusters
+
+Para cada estado, plote um ponto no mapa, colorido de acordo com o cluster ao qual pertence. Os centros dos clusters são indicados com um "X".
+
+```python
+colors = ['red', 'green', 'blue']
+for i, estado in enumerate(estados):
+    x, y = m(longitude[i], latitude[i])
+    plt.scatter(x, y, c=colors[clusters[i]], s=densidade_populacional[i]/5, label=estado)
+
+for i, centro in enumerate(kmeans.cluster_centers_):
+    plt.scatter([], [], c=colors[i], s=100, marker='x', label=f'Centro do Cluster {i+1}')
+
 ```
 
-## Execução do Projeto
+### 8. Exibição do Mapa
 
-1. **Obtenção dos Dados**: 
-   Utilize dados fictícios ou reais de densidade populacional dos estados brasileiros. No notebook, os dados são carregados e processados para aplicação do K-means.
+Exiba o mapa com a legenda indicando os estados e os centros dos clusters.
 
-2. **Execução do K-means**:
-   O algoritmo K-means é aplicado aos dados para encontrar clusters de densidade populacional, agrupando os estados com densidades semelhantes.
+```python
+plt.title('K-means Clustering - Densidade Populacional dos Estados Brasileiros')
+plt.legend(loc='lower left')
+plt.show()
+```
 
-3. **Visualização dos Resultados**:
-   Um gráfico de dispersão é gerado, mostrando os estados agrupados de acordo com a densidade populacional. Cada cluster é representado por uma cor, facilitando a identificação de padrões regionais.
+## Resultados
 
-## Resultado Esperado
+O código gera duas saídas principais:
+1. Um gráfico de dispersão mostrando os clusters de densidade populacional.
+2. Um mapa do Brasil com a localização dos estados coloridos de acordo com os clusters, indicando a distribuição da densidade populacional.
 
-A análise resulta em uma visualização clara dos estados brasileiros organizados por grupos de densidade populacional, destacando as regiões com maior concentração populacional.
+Essas visualizações ajudam a entender como os estados se agrupam em relação à densidade populacional, proporcionando uma análise geográfica e estatística dos dados.
 
-## Contribuições
+## Contribuição
 
-Sinta-se à vontade para contribuir com este projeto. Para isso, faça um fork do repositório, crie uma branch para suas modificações e abra um pull request.
-
-## Contato
-
-Para dúvidas ou sugestões, entre em contato:
-
-- **Nome:** [Seu Nome]
-- **E-mail:** [Seu Email]
+Sinta-se à vontade para contribuir com melhorias ou sugestões para o projeto. Abra uma issue ou envie um pull request!
 
 ## Licença
 
-Este projeto é de uso educacional e não possui uma licença específica.
+Este projeto é de uso educacional e está sob a licença MIT.
+
+
